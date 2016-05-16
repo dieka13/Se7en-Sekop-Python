@@ -8,10 +8,12 @@ class Table:
         self.closed = [ False for i in range(len(Card.suits)) ]
 
     def put_card(self, card):
-        self.table[card.suit][card.rank] = card
 
-        if(card.rank_string() == 'ace'):
-            self.closed[card.suit] = True
+        if card is not None:
+            self.table[card.suit][card.rank] = card
+
+            if card.rank_string() == 'ace':
+                self.closed[card.suit] = True
 
     def show(self):
         title = []
@@ -37,21 +39,24 @@ class Table:
 
         print t
 
-    def get_putable_cards(self):
+    def get_playable_cards(self):
 
-        put_cards = []
+        put_cards = [[] for i in range(len(Card.suits))]
+        playable_cards = []
+        
         for suit_idx, suits in enumerate(self.table):
             for card in suits:
-                if (not card is None) and (not self.closed[suit_idx]):
-                    put_cards.append(card)
+                if (card is not None) and (not self.closed[suit_idx]):
+                    put_cards[suit_idx].append(card.rank)
 
-        putable_cards = []
-        for card in put_cards:
-            if card.rank >= 6:
-                putable_cards.append(card.get_upper())
+        for suit_idx, suit in enumerate(put_cards):
+            if suit:
+                rank_min = min(suit)
+                rank_max = max(suit)
+                
+                playable_cards.extend([
+                    Card(suit_idx, rank_min).lower(), Card(suit_idx, rank_max).higher()
+                ])
 
-            if card.rank <= 6:
-                putable_cards.append(card.get_lower())
-
-        return putable_cards
+        return playable_cards
 

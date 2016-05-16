@@ -14,7 +14,11 @@ class Card:
         else:
             self.rank = rank
 
-        self.closed = False
+        if self.rank > 0:
+            self.point = self.rank+1
+        else:
+            self.point = 14
+
 
     def suit_string(self):
         return Card.suits[self.suit]
@@ -28,17 +32,13 @@ class Card:
     def __eq__(self, other):
         return (self.rank == other.rank) and (self.suit == other.suit)
 
-    def close(self):
-        self.closed = True
+    # Get lower rank card from this card
+    def lower(self):
+        return Card(self.suit, self.rank-1)
 
-    def get_lower(self):
-        if self.rank == 0:
-            return Card(self.suit, len(Card.ranks)-1)
-        else:
-            return Card(self.suit, self.rank-1)
-
-    def get_upper(self):
-        if self.rank == len(Card.ranks):
+    # Get higher rank card from this card
+    def higher(self):
+        if self.rank == len(Card.ranks)-1:
             return Card(self.suit, 0)
         else:
             return Card(self.suit, self.rank + 1)
