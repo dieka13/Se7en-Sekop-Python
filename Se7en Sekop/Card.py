@@ -14,12 +14,6 @@ class Card:
         else:
             self.rank = rank
 
-        if self.rank > 0:
-            self.point = self.rank+1
-        else:
-            self.point = 14
-
-
     def suit_string(self):
         return Card.suits[self.suit]
 

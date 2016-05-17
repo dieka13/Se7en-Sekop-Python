@@ -1,13 +1,16 @@
 from Card import Card
-from Player import Player
+from Player import Player, AiPlayer
 from collections import deque
 from Table import Table
-import random, os
+from prettytable import PrettyTable
+import random
+import os
+
 
 p1 = Player('Dieka')
-p2 = Player('Bot 1')
-p3 = Player('Bot 2')
-p4 = Player('Bot 3')
+p2 = Player('BOT 1')
+p3 = Player('BOT 2')
+p4 = Player('BOT 3')
 players = [p1, p2, p3, p4]
 table = Table()
 
@@ -43,9 +46,11 @@ for n_turns in range(step):
             n_turns += 1
             continue
 
+        print
         table.show()
 
-        print player.name + "'s turn:"
+        print "-----" + player.name + "'s turn------"
+        print
         played_card = player.play(table.get_playable_cards())
         table.put_card(played_card)
 
@@ -60,12 +65,25 @@ for n_turns in range(step):
 
 print "the game is finished"
 table.show()
-game_points = []
-for p in players:
-    print p.name + " : "
-    print str(sorted([str(c) for c in p.closed])) + " --> " + str(p.get_points()) + " total = " + str(sum(p.get_points()))
-    print
-    game_points.append(p.get_points())
 
-print "the winner is " + players[game_points.index(min(game_points))].name
+print "scoreboard : "
+t = PrettyTable()
+game_points = []
+closed_cards = []
+
+for p in players:
+    game_points.append(p.get_points(table.is_closed(), table.closed_at))
+    closed_cards.append(p.closed)
+
+n_rows = [ len(closed) for closed in closed_cards ]
+max_n_rows = max(n_rows)
+for closed in closed_cards:
+    for i in range(max_n_rows - len(closed)):
+        closed.append("")
+
+for p_idx, closed in enumerate(closed_cards):
+    t.add_column(players[p_idx].name, closed)
+
+print t
+print "the loser is " + players[game_points.index(max(game_points))].name
 

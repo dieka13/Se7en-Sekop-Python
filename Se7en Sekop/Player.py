@@ -1,8 +1,10 @@
-from Card import Card
 from prettytable import PrettyTable
 
+from Card import Card
+from Helper import get_response
 
-class Player:
+
+class Player(object):
 
     def __init__(self, name):
         self.name = name
@@ -29,7 +31,7 @@ class Player:
 
         return sorted(drawable_cards)
 
-    def show_hand(self):
+    def show_cards(self):
         t = PrettyTable()
         suits = [[] for _ in range(len(Card.suits))]
 
@@ -46,24 +48,63 @@ class Player:
 
         print t
 
-    def get_points(self):
-        points = [ card.point for card in self.closed ]
+    def show_closed_cards(self):
+        t = PrettyTable()
+        suits = [[] for _ in range(len(Card.suits))]
+
+        for card in sorted(self.closed):
+            suits[card.suit].append(card.rank_string())
+
+        n_max_row = max([len(s) for s in suits])
+        for rank in suits:
+            for i in range(n_max_row - len(rank)):
+                rank.append("")
+
+        for suit, suit_cards in enumerate(suits):
+            t.add_column(Card.suits[suit], suit_cards)
+
+        print t
+
+    def get_points(self, closed, closed_at):
+
+        points = 0
+
+        for card in self.closed:
+            if card.rank != 0:
+                points += card.rank+1
+            else:
+                if closed:
+                    if closed_at == 'up':
+                        points += 14
+                    else:
+                        points += 1
+                else:
+                    points += 7
 
         return points
 
     def play(self, playable_cards):
-
         drawable_cards = self.get_drawable_cards(playable_cards)
 
-        print "Your cards : "
-        self.show_hand()
+        # for c in playable_cards:
+        #     print str(c) + ",",
+        # print
+
+        print "Closed cards : "
+        self.show_closed_cards()
+        print
+
+        print "Cards :"
+        self.show_cards()
+        print
 
         if drawable_cards:
-            print "choose card to draw:"
+
+            print "choose card to draw :"
             for c_idx, c in enumerate(drawable_cards):
                 print "[" + str(c_idx) + "]", c
 
-            reply = _get_response("(enter card number) : ", [i for i in range(len(drawable_cards))])
+            reply = get_response("(enter card number) : ", [i for i in range(len(drawable_cards))])
             card = drawable_cards[int(reply)]
 
             return self.draw_card(card.suit, card.rank)
@@ -73,28 +114,35 @@ class Player:
             print "choose card to close:"
             for c_idx, c in enumerate(sorted(self.open)):
                 print "[" + str(c_idx) + "]", c
-            reply = _get_response("(enter card number) : ", [i for i in range(len(self.open))])
+            reply = get_response("(enter card number) : ", [i for i in range(len(self.open))])
             card = sorted(self.open)[int(reply)]
             self.close_card(card)
 
             return None
 
 
-def _get_response(prompt, valid_options):
-    reply = None
-    error_message = "please, input a number " + str(valid_options)
+class AiPlayer(Player):
+    id = 1
 
-    while True:
-        try:
-            reply = raw_input(prompt)
-            reply = int(reply)
+    def __init__(self):
+        Player.__init__(self, 'AI BOT ' + str(AiPlayer.id))
+        AiPlayer.id += 1
 
-            if reply not in valid_options:
-                raise ValueError
-            else:
-                break
+    def _best_close(self):
+        pass
 
-        except ValueError:
-            print error_message
+    def _best_draw(self, drawable_cards):
+        pass
 
-    return reply
+    def play(self, playable_cards):
+        drawable_cards = self.get_drawable_cards(playable_cards)
+
+        print "Your cards : "
+        self.show_cards()
+
+        if drawable_cards:
+            return self._best_draw(drawable_cards)
+        else:
+            self._best_close()
+            return None
+

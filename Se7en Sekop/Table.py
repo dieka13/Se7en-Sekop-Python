@@ -1,4 +1,5 @@
 from Card import Card
+from Helper import get_response
 from prettytable import PrettyTable
 
 class Table:
@@ -6,14 +7,45 @@ class Table:
     def __init__(self):
         self.table = [ [ None for j in range(len(Card.ranks)+1) ] for i in range(len(Card.suits)) ]
         self.closed = [ False for i in range(len(Card.suits)) ]
+        self.closed_at = None
 
     def put_card(self, card):
 
         if card is not None:
-            self.table[card.suit][card.rank] = card
-
-            if card.rank_string() == 'ace':
+            if card.rank != 0:
+                self.table[card.suit][card.rank] = card
+            else:
                 self.closed[card.suit] = True
+
+                if self.is_closed():
+
+                    if self.closed_at == 'up':
+                        self.table[card.suit][len(Card.ranks)] = card
+                    elif self.closed_at == 'bottom':
+                        self.table[card.suit][card.rank] = card
+
+                else:
+
+                    if self.on_table(Card(card.suit, 'king')) and self.on_table(Card(card.suit, '2')):
+                        print 'choose where you want to put ' + str(card) + ' : '
+                        print "[0] up"
+                        print "[1] bottom"
+                        reply = get_response('your choice : ', [0, 1])
+
+                        if reply == 0:
+                            self.closed_at = 'up'
+                            self.table[card.suit][len(Card.ranks)] = card
+                        else:
+                            self.closed_at = 'bottom'
+                            self.table[card.suit][card.rank] = card
+
+                    elif self.on_table(Card(card.suit, 'king')):
+                        self.closed_at = 'up'
+                        self.table[card.suit][len(Card.ranks)] = card
+
+                    elif self.on_table(Card(card.suit, '2')):
+                        self.closed_at = 'bottom'
+                        self.table[card.suit][card.rank] = card
 
     def show(self):
         title = []
@@ -26,7 +58,7 @@ class Table:
 
         t = PrettyTable(title)
 
-        for rank_idx in range(len(self.table[0])):
+        for rank_idx in sorted(range(len(self.table[0])),reverse=True):
             row = []
 
             for suit_idx in range(len(self.table)):
@@ -40,14 +72,26 @@ class Table:
         print t
 
     def get_playable_cards(self):
-
         put_cards = [[] for i in range(len(Card.suits))]
         playable_cards = []
         
         for suit_idx, suits in enumerate(self.table):
             for card in suits:
-                if (card is not None) and (not self.closed[suit_idx]):
-                    put_cards[suit_idx].append(card.rank)
+                if card is not None:
+
+                    if not self.is_closed():
+                        put_cards[card.suit].append(card.rank)
+
+                    elif not self.closed[card.suit]:
+                        if (card == Card(card.suit, '2')) or (card == Card(card.suit, 'king')):
+
+                            if (card == Card(card.suit, '2')) and (self.closed_at == 'bottom'):
+                                put_cards[card.suit].append(card.rank)
+                            elif (card == Card(card.suit, 'king')) and (self.closed_at == 'up'):
+                                put_cards[card.suit].append(card.rank)
+                        else:
+                            put_cards[card.suit].append(card.rank)
+
 
         for suit_idx, suit in enumerate(put_cards):
             if suit:
@@ -60,3 +104,8 @@ class Table:
 
         return playable_cards
 
+    def on_table(self, card):
+        return self.table[card.suit][card.rank] is not None
+
+    def is_closed(self):
+        return any(self.closed)
