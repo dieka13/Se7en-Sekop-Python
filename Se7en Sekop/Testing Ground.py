@@ -8,9 +8,9 @@ import os
 
 
 p1 = Player('Dieka')
-p2 = Player('BOT 1')
-p3 = Player('BOT 2')
-p4 = Player('BOT 3')
+p2 = AiPlayer()
+p3 = AiPlayer()
+p4 = AiPlayer()
 players = [p1, p2, p3, p4]
 table = Table()
 
@@ -37,6 +37,9 @@ player_turns = deque(players)
 player_turns.rotate(-starts_from)
 _ = os.system("cls")
 
+name = raw_input("Write your name : ")
+p1.name = name
+
 for n_turns in range(step):
     for player in player_turns:
 
@@ -47,14 +50,17 @@ for n_turns in range(step):
             continue
 
         print
-        table.show()
+        if not isinstance(player, AiPlayer):
+            table.show()
 
-        print "-----" + player.name + "'s turn------"
-        print
+            print "-----" + player.name + "'s turn------"
+            print
+
         played_card = player.play(table.get_playable_cards())
         table.put_card(played_card)
 
-        _ = os.system("cls")
+        if not isinstance(player, AiPlayer):
+            _ = os.system("cls")
 
         if played_card is not None:
             print player.name + " put " + str(played_card) + " on the table"

@@ -1,5 +1,5 @@
 from prettytable import PrettyTable
-
+from random import randint
 from Card import Card
 from Helper import get_response
 
@@ -128,17 +128,17 @@ class AiPlayer(Player):
         Player.__init__(self, 'AI BOT ' + str(AiPlayer.id))
         AiPlayer.id += 1
 
+    # random, for now
     def _best_close(self):
-        pass
+        selection = self.open[randint(0, len(self.open)-1)]
+        self.close_card(selection)
 
+    # random, for now
     def _best_draw(self, drawable_cards):
-        pass
+        return drawable_cards[randint(0, len(drawable_cards)-1)]
 
     def play(self, playable_cards):
         drawable_cards = self.get_drawable_cards(playable_cards)
-
-        print "Your cards : "
-        self.show_cards()
 
         if drawable_cards:
             return self._best_draw(drawable_cards)
